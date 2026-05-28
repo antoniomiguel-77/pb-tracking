@@ -18,11 +18,36 @@ It is built to be reusable, configuration-driven, and easy to extend with new tr
 
 ## Installation
 
-Install the package through Composer:
+If the package is already published on Packagist, install it through Composer:
 
 ```bash
 composer require yetosoft/livewire-tracking
 ```
+
+### Installing from GitHub before Packagist
+
+If Composer returns `Could not find a matching version of package yetosoft/livewire-tracking`, the package is not available on Packagist yet, or it does not have a stable release tag.
+
+In that case, add the GitHub repository to the consuming project's `composer.json`:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/yetosoft/livewire-tracking"
+        }
+    ]
+}
+```
+
+Then install the development branch:
+
+```bash
+composer require yetosoft/livewire-tracking:dev-main
+```
+
+If the consuming project has `"minimum-stability": "stable"`, keep `"prefer-stable": true` and require the package explicitly as `dev-main`, or create a stable Git tag such as `v1.0.0` and publish it on Packagist.
 
 Then run the installer:
 
