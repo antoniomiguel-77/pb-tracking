@@ -1,66 +1,370 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# YetoSoft Livewire Tracking
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+`yetosoft/livewire-tracking` is an enterprise-ready Laravel package for centralized tracking across multiple providers, with first-class support for Livewire 3, `wire:navigate`, browser events, and Alpine.js.
 
-## About Laravel
+It is built to be reusable, configuration-driven, and easy to extend with new tracking drivers.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Highlights
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Laravel 10+ and Laravel 11+ compatible
+- Livewire 3 friendly
+- Supports Facebook Pixel, Google Analytics 4, and TikTok Pixel
+- Multi-provider driver architecture
+- Facade and helper support
+- Publishable config, views, and assets
+- Browser-event based tracking pipeline
+- SPA navigation support through `livewire:navigated`
+- Alpine.js integration
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Installation
 
-## Learning Laravel
+Install the package through Composer:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```bash
+composer require yetosoft/livewire-tracking
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Then run the installer:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+php artisan tracking:install
+```
 
-## Laravel Sponsors
+The install command publishes:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- `config/tracking.php`
+- package views
+- the standalone JavaScript asset
 
-### Premium Partners
+## Configuration
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+The package ships with a publishable config file at `config/tracking.php`.
 
-## Contributing
+```php
+return [
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    'enabled' => true,
 
-## Code of Conduct
+    'drivers' => [
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+        'facebook' => [
+            'enabled' => true,
+            'pixel_id' => env('FB_PIXEL_ID'),
+        ],
 
-## Security Vulnerabilities
+        'google' => [
+            'enabled' => false,
+            'measurement_id' => env('GA_MEASUREMENT_ID'),
+        ],
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+        'tiktok' => [
+            'enabled' => false,
+            'pixel_id' => env('TIKTOK_PIXEL_ID'),
+        ],
 
-## License
+    ],
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+];
+```
+
+Recommended `.env` entries:
+
+```env
+FB_PIXEL_ID=1234567890
+GA_MEASUREMENT_ID=G-XXXXXXXXXX
+TIKTOK_PIXEL_ID=CXXXXXXXXXX
+```
+
+## Publishing Assets
+
+If you want to publish manually:
+
+```bash
+php artisan vendor:publish --tag=tracking-config
+php artisan vendor:publish --tag=tracking-views
+php artisan vendor:publish --tag=tracking-assets
+```
+
+## Blade Integration
+
+Include the package scripts in your base layout:
+
+```blade
+@include('tracking::scripts')
+```
+
+The view renders:
+
+- provider bootstrap snippets
+- the `window.YetoTracking` global
+- the tracking runtime
+
+## Livewire 3 Integration
+
+Use the `InteractsWithTracking` trait in any Livewire 3 component:
+
+```php
+use Yetosoft\LivewireTracking\Livewire\Concerns\InteractsWithTracking;
+
+class CheckoutForm extends \Livewire\Component
+{
+    use InteractsWithTracking;
+
+    public function submit(): void
+    {
+        $this->track('Purchase', [
+            'value' => 5000,
+            'currency' => 'AOA',
+        ]);
+    }
+}
+```
+
+The trait dispatches a modern browser event named `yeto-track`, which is consumed by the JavaScript runtime.
+
+## Facade Usage
+
+```php
+use Yetosoft\LivewireTracking\Facades\Tracking;
+
+Tracking::pageView();
+
+Tracking::track('Lead', [
+    'source' => 'contact-form',
+]);
+```
+
+## Helper Usage
+
+```php
+tracking()->track('AddToCart', [
+    'product_id' => 1001,
+    'quantity' => 2,
+]);
+```
+
+## JavaScript API
+
+The package exposes a global object:
+
+```js
+window.YetoTracking
+```
+
+Available methods:
+
+```js
+window.YetoTracking.pageView();
+window.YetoTracking.track('Purchase', {
+    value: 5000,
+    currency: 'AOA',
+});
+```
+
+### Browser Events
+
+The runtime listens to:
+
+- `yeto-track`
+- `livewire:navigated`
+- `alpine:init`
+
+This makes the package work naturally with:
+
+- Livewire 3 SPA navigation
+- browser-dispatched tracking events
+- Alpine.js stores and magic helpers
+
+## Facebook Pixel
+
+Supported actions:
+
+- `PageView`
+- `Purchase`
+- `Lead`
+- `CompleteRegistration`
+- `AddToCart`
+- custom events
+
+Example:
+
+```php
+Tracking::track('Purchase', [
+    'value' => 5000,
+    'currency' => 'AOA',
+]);
+```
+
+## Google Analytics 4
+
+The Google driver maps common commerce actions to GA4-friendly event names:
+
+- `PageView` -> `page_view`
+- `Purchase` -> `purchase`
+- `Lead` -> `generate_lead`
+- `CompleteRegistration` -> `sign_up`
+- `AddToCart` -> `add_to_cart`
+
+## TikTok Pixel
+
+The TikTok driver bootstraps the pixel and forwards tracking calls from the browser runtime.
+
+## Alpine.js Integration
+
+The runtime registers:
+
+- `Alpine.store('yetoTracking', ...)`
+- `Alpine.magic('track', ...)`
+
+Example:
+
+```html
+<button x-on:click="$track('Lead', { source: 'newsletter' })">
+    Subscribe
+</button>
+```
+
+## SPA Navigation Support
+
+Livewire 3 fires `livewire:navigated` after SPA transitions. The package listens to that event and automatically sends a page view again, ensuring page navigation is tracked correctly without jQuery or Livewire 2 APIs.
+
+## Browser Event Payload
+
+The browser event payload uses this shape:
+
+```json
+{
+  "event": "Purchase",
+  "data": {
+    "value": 5000,
+    "currency": "AOA"
+  },
+  "meta": {
+    "origin": "server",
+    "timestamp": "2026-05-28T00:00:00Z"
+  }
+}
+```
+
+## Real Examples
+
+### Purchase
+
+```php
+$this->track('Purchase', [
+    'value' => 5000,
+    'currency' => 'AOA',
+    'transaction_id' => 'ORD-2026-001',
+]);
+```
+
+### Lead
+
+```php
+Tracking::track('Lead', [
+    'source' => 'contact-form',
+    'campaign' => 'landing-page',
+]);
+```
+
+### Complete Registration
+
+```php
+Tracking::track('CompleteRegistration', [
+    'method' => 'email',
+    'plan' => 'enterprise',
+]);
+```
+
+## Architecture
+
+The package follows a clean, extensible structure:
+
+- `Contracts/TrackerContract.php`
+- `Drivers/*` for provider-specific drivers
+- `Services/TrackingManager.php` for central orchestration
+- `Services/EventDispatcher.php` for event normalization
+- `Livewire/Concerns/InteractsWithTracking.php` for component integration
+- `TrackingServiceProvider.php` for registration and publishing
+- `resources/js/tracking.js` for client-side dispatch
+
+### Manager Responsibilities
+
+- resolve active drivers
+- validate enabled providers
+- dispatch page views and custom events
+- render package scripts
+- support future custom driver classes
+
+### Driver Extension
+
+To create a new driver, add a config entry such as:
+
+```php
+'drivers' => [
+    'linkedin' => [
+        'enabled' => true,
+        'driver_class' => App\\Tracking\\Drivers\\LinkedInDriver::class,
+        'pixel_id' => env('LINKEDIN_PIXEL_ID'),
+    ],
+],
+```
+
+Your class should implement `Yetosoft\LivewireTracking\Contracts\TrackerContract`.
+
+## Troubleshooting
+
+### Nothing tracks
+
+- confirm `tracking.enabled` is `true`
+- confirm the driver is enabled
+- confirm the pixel or measurement ID is set
+
+### Duplicate page views
+
+- include the package scripts only once in your layout
+- do not manually call `pageView()` if you already rely on SPA navigation auto-tracking
+
+### Livewire events are not firing
+
+- ensure you are using Livewire 3
+- make sure your component uses `dispatch()` and not legacy Livewire 2 APIs
+
+### Alpine helpers do not exist
+
+- make sure `tracking::scripts` is included after Alpine is loaded
+
+## Tests
+
+The package includes automated tests for:
+
+- manager behavior
+- driver payload capture
+- facade resolution
+- service provider registration
+- config loading
+- browser dispatch flow
+
+Run them with:
+
+```bash
+phpunit
+```
+
+## Contribution
+
+Contributions are welcome. Keep changes:
+
+- typed
+- focused
+- test-covered
+- compatible with Laravel 10+ and Livewire 3
+
+## Roadmap
+
+- additional drivers
+- queued/offline tracking adapters
+- more provider-specific normalization helpers
+- richer analytics event maps
+- optional asset bundling support
+

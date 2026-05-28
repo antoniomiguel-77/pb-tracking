@@ -1,0 +1,3 @@
+@once
+    {!! tracking()->renderScripts() !!}
+@endonce

@@ -1,13 +1,22 @@
 {
-    "name": "laravel/laravel",
-    "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "name": "yetosoft/livewire-tracking",
+    "type": "library",
+    "description": "Enterprise-grade tracking package for Laravel and Livewire 3.",
+    "keywords": [
+        "laravel",
+        "livewire",
+        "tracking",
+        "analytics",
+        "facebook-pixel",
+        "ga4",
+        "tiktok-pixel",
+        "package"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.1",
         "guzzlehttp/guzzle": "^7.2",
-        "laravel/framework": "^10.10",
+        "laravel/framework": "^10.10 || ^11.0",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8"
     },
@@ -24,8 +33,12 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
-        }
+            "Database\\Seeders\\": "database/seeders/",
+            "Yetosoft\\LivewireTracking\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -49,7 +62,12 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "providers": [
+                "Yetosoft\\LivewireTracking\\TrackingServiceProvider"
+            ],
+            "aliases": {
+                "Tracking": "Yetosoft\\LivewireTracking\\Facades\\Tracking"
+            }
         }
     },
     "config": {
