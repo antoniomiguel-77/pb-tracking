@@ -1,37 +1,41 @@
-@php($pixelId = data_get($config, 'pixel_id'))
-@if($pixelId)
-<script>
-(function (w, d, s, u, n, t, a) {
-    if (w.fbq) {
-        return;
-    }
+@php
+    $config = config('services.facebook_pixel');
+    $pixelId = data_get($config, 'pixel_id');
 
-    n = w.fbq = function () {
-        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-    };
+@endphp
+@if ($pixelId)
+    <script>
+        (function(w, d, s, u, n, t, a) {
+            if (w.fbq) {
+                return;
+            }
 
-    if (!w._fbq) {
-        w._fbq = n;
-    }
+            n = w.fbq = function() {
+                n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+            };
 
-    n.push = n;
-    n.loaded = true;
-    n.version = '2.0';
-    n.queue = [];
-    t = d.createElement(s);
-    t.async = true;
-    t.src = u;
-    a = d.getElementsByTagName(s)[0];
-    a.parentNode.insertBefore(t, a);
-})(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+            if (!w._fbq) {
+                w._fbq = n;
+            }
 
-fbq('init', @json($pixelId));
+            n.push = n;
+            n.loaded = true;
+            n.version = '2.0';
+            n.queue = [];
+            t = d.createElement(s);
+            t.async = true;
+            t.src = u;
+            a = d.getElementsByTagName(s)[0];
+            a.parentNode.insertBefore(t, a);
+        })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
 
-window.YetoTracking = window.YetoTracking || {};
-window.YetoTracking.providers = window.YetoTracking.providers || {};
-window.YetoTracking.providers.facebook = {
-    enabled: true,
-    pixelId: @json($pixelId),
-};
-</script>
+        fbq('init', @json($pixelId));
+
+        window.YetoTracking = window.YetoTracking || {};
+        window.YetoTracking.providers = window.YetoTracking.providers || {};
+        window.YetoTracking.providers.facebook = {
+            enabled: true,
+            pixelId: @json($pixelId),
+        };
+    </script>
 @endif
