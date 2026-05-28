@@ -23,4 +23,10 @@ return [
 
     ],
 
+    'storage' => [
+        'enabled' => true,
+        'connection' => env('TRACKING_DB_CONNECTION'),
+        'table' => 'tracking_events',
+    ],
+
 ];

@@ -31,11 +31,17 @@ final class InstallTrackingCommand extends Command
             '--force' => $force,
         ]);
 
+        $this->call('vendor:publish', [
+            '--tag' => 'tracking-migrations',
+            '--force' => $force,
+        ]);
+
         $this->newLine();
         $this->info('YetoSoft Livewire Tracking installed successfully.');
         $this->line('1. Configure your pixel IDs in config/tracking.php or via environment variables.');
         $this->line('2. Add @include(\'tracking::scripts\') to your main Blade layout.');
-        $this->line('3. Use Tracking::track(...) or the InteractsWithTracking trait in Livewire components.');
+        $this->line('3. Run php artisan migrate to create the tracking_events table.');
+        $this->line('4. Use Tracking::track(...) or the InteractsWithTracking trait in Livewire components.');
         $this->newLine();
 
         return self::SUCCESS;

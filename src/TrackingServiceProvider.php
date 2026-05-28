@@ -7,6 +7,7 @@ namespace Yetosoft\LivewireTracking;
 use Illuminate\Support\ServiceProvider;
 use Yetosoft\LivewireTracking\Commands\InstallTrackingCommand;
 use Yetosoft\LivewireTracking\Services\EventDispatcher;
+use Yetosoft\LivewireTracking\Services\TrackingEventRecorder;
 use Yetosoft\LivewireTracking\Services\TrackingManager;
 
 final class TrackingServiceProvider extends ServiceProvider
@@ -16,15 +17,18 @@ final class TrackingServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/tracking.php', 'tracking');
 
         $this->app->singleton(EventDispatcher::class);
+        $this->app->singleton(TrackingEventRecorder::class);
         $this->app->singleton(TrackingManager::class, fn ($app): TrackingManager => new TrackingManager(
             $app['config'],
             $app->make(EventDispatcher::class),
+            $app->make(TrackingEventRecorder::class),
         ));
         $this->app->alias(TrackingManager::class, 'tracking');
     }
 
     public function boot(): void
     {
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'tracking');
 
         $this->publishes([
@@ -38,6 +42,10 @@ final class TrackingServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../resources/js/tracking.js' => public_path('vendor/yetosoft/livewire-tracking/tracking.js'),
         ], 'tracking-assets');
+
+        $this->publishes([
+            __DIR__.'/../database/migrations' => database_path('migrations'),
+        ], 'tracking-migrations');
 
         if ($this->app->runningInConsole()) {
             $this->commands([

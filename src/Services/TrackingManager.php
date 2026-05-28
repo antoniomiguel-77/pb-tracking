@@ -16,6 +16,7 @@ final class TrackingManager
     public function __construct(
         private readonly ConfigRepository $config,
         private readonly EventDispatcher $events,
+        private readonly TrackingEventRecorder $recorder,
     ) {
     }
 
@@ -85,7 +86,7 @@ final class TrackingManager
             return collect();
         }
 
-        return $this->activeDrivers()->map(function (array $driverData) use ($event, $data): array {
+        $results = $this->activeDrivers()->map(function (array $driverData) use ($event, $data): array {
             /** @var TrackerContract $driver */
             $driver = $driverData['driver'];
 
@@ -110,6 +111,18 @@ final class TrackingManager
                 ]
             );
         });
+
+        $this->recorder->record(
+            $event,
+            $data,
+            $results->pluck('driver')->all(),
+            [
+                'origin' => 'php',
+                'drivers' => $results->all(),
+            ]
+        );
+
+        return $results;
     }
 
     private function isDriverEnabled(string $name, array $driverConfig): bool

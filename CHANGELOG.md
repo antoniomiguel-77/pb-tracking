@@ -23,3 +23,15 @@ The format is based on [Semantic Versioning](https://semver.org/).
 - multi-provider driver manager
 - automated test coverage for core flows
 
+## [1.1.0] - 2026-05-28
+
+### Added
+
+- database persistence for captured tracking events
+- publishable migration for the `tracking_events` table
+- `TrackingEventRecorder` service for audit logging
+- storage configuration section
+
+### Changed
+
+- install command now publishes the migration and reminds the user to run `migrate`

@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Yetosoft\LivewireTracking\Livewire\Concerns\InteractsWithTracking;
 use Yetosoft\LivewireTracking\Services\EventDispatcher;
 
 final class TrackingDispatchTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_livewire_trait_dispatches_browser_events(): void
     {
         config()->set('tracking.enabled', true);
@@ -24,6 +27,10 @@ final class TrackingDispatchTest extends TestCase
         config()->set('tracking.drivers.tiktok', [
             'enabled' => false,
             'pixel_id' => 'tt-123',
+        ]);
+        config()->set('tracking.storage', [
+            'enabled' => true,
+            'table' => 'tracking_events',
         ]);
 
         $component = new class () {
@@ -51,5 +58,6 @@ final class TrackingDispatchTest extends TestCase
         $this->assertSame(EventDispatcher::BROWSER_EVENT, $component->dispatched[0]['event']);
         $this->assertSame('Purchase', $component->dispatched[0]['payload']['name']);
         $this->assertSame(5000, $component->dispatched[0]['payload']['data']['value']);
+        $this->assertDatabaseCount('tracking_events', 1);
     }
 }

@@ -35,6 +35,7 @@ The install command publishes:
 - `config/tracking.php`
 - package views
 - the standalone JavaScript asset
+- the database migration for the `tracking_events` table
 
 ## Configuration
 
@@ -75,6 +76,20 @@ GA_MEASUREMENT_ID=G-XXXXXXXXXX
 TIKTOK_PIXEL_ID=CXXXXXXXXXX
 ```
 
+### Storage
+
+The package can persist every captured tracking action into the database.
+
+```php
+'storage' => [
+    'enabled' => true,
+    'connection' => env('TRACKING_DB_CONNECTION'),
+    'table' => 'tracking_events',
+],
+```
+
+When storage is enabled, each `Tracking::track(...)` call is written to the `tracking_events` table as an audit trail.
+
 ## Publishing Assets
 
 If you want to publish manually:
@@ -83,6 +98,7 @@ If you want to publish manually:
 php artisan vendor:publish --tag=tracking-config
 php artisan vendor:publish --tag=tracking-views
 php artisan vendor:publish --tag=tracking-assets
+php artisan vendor:publish --tag=tracking-migrations
 ```
 
 ## Blade Integration
@@ -258,6 +274,8 @@ $this->track('Purchase', [
 ]);
 ```
 
+That event is sent to the active providers and stored in the `tracking_events` table for auditing, debugging, or later processing.
+
 ### Lead
 
 ```php
@@ -284,6 +302,7 @@ The package follows a clean, extensible structure:
 - `Drivers/*` for provider-specific drivers
 - `Services/TrackingManager.php` for central orchestration
 - `Services/EventDispatcher.php` for event normalization
+- `Services/TrackingEventRecorder.php` for database persistence
 - `Livewire/Concerns/InteractsWithTracking.php` for component integration
 - `TrackingServiceProvider.php` for registration and publishing
 - `resources/js/tracking.js` for client-side dispatch
@@ -293,8 +312,26 @@ The package follows a clean, extensible structure:
 - resolve active drivers
 - validate enabled providers
 - dispatch page views and custom events
+- persist captured events into the database
 - render package scripts
 - support future custom driver classes
+
+### Database Schema
+
+The package creates a `tracking_events` table with:
+
+- `event`
+- `driver`
+- `drivers`
+- `data`
+- `meta`
+- `url`
+- `ip_address`
+- `user_agent`
+- `user_id`
+- `session_id`
+
+This gives you a durable audit trail of every tracked interaction.
 
 ### Driver Extension
 
@@ -367,4 +404,3 @@ Contributions are welcome. Keep changes:
 - more provider-specific normalization helpers
 - richer analytics event maps
 - optional asset bundling support
-

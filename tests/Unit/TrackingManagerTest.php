@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Yetosoft\LivewireTracking\Services\TrackingManager;
 
 final class TrackingManagerTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -28,6 +31,10 @@ final class TrackingManagerTest extends TestCase
                     'enabled' => false,
                     'pixel_id' => 'tt-123',
                 ],
+            ],
+            'storage' => [
+                'enabled' => true,
+                'table' => 'tracking_events',
             ],
         ]);
     }
@@ -49,6 +56,10 @@ final class TrackingManagerTest extends TestCase
         $this->assertCount(2, $results);
         $this->assertSame(['facebook', 'google'], $results->pluck('driver')->all());
         $this->assertSame('PageView', $results->first()['event']);
+        $this->assertDatabaseCount('tracking_events', 1);
+        $this->assertDatabaseHas('tracking_events', [
+            'event' => 'PageView',
+        ]);
     }
 
     public function test_manager_dispatches_custom_events_to_enabled_drivers(): void
@@ -63,6 +74,10 @@ final class TrackingManagerTest extends TestCase
         $this->assertCount(2, $results);
         $this->assertSame('Purchase', $results->first()['event']);
         $this->assertSame(5000, $results->first()['data']['value']);
+        $this->assertDatabaseCount('tracking_events', 1);
+        $this->assertDatabaseHas('tracking_events', [
+            'event' => 'Purchase',
+        ]);
     }
 
     public function test_manager_renders_scripts_for_enabled_drivers(): void
