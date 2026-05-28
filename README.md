@@ -41,6 +41,19 @@ In that case, add the GitHub repository to the consuming project's `composer.jso
 }
 ```
 
+The `url` must be the exact public GitHub repository URL. If your code is hosted under another account or repository name, use that URL instead. For example:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/antoniomiguel-77/pb-tracking"
+        }
+    ]
+}
+```
+
 Then install the development branch:
 
 ```bash
