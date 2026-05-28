@@ -37,6 +37,12 @@ The install command publishes:
 - the standalone JavaScript asset
 - the database migration for the `tracking_events` table
 
+After publishing, run:
+
+```bash
+php artisan migrate
+```
+
 ## Configuration
 
 The package ships with a publishable config file at `config/tracking.php`.
@@ -90,6 +96,23 @@ The package can persist every captured tracking action into the database.
 
 When storage is enabled, each `Tracking::track(...)` call is written to the `tracking_events` table as an audit trail.
 
+#### Stored fields
+
+The `tracking_events` table stores:
+
+- `event`
+- `driver`
+- `drivers`
+- `data`
+- `meta`
+- `url`
+- `ip_address`
+- `user_agent`
+- `user_id`
+- `session_id`
+
+This gives you an auditable history of tracked actions for debugging, analytics review, and later processing.
+
 ## Publishing Assets
 
 If you want to publish manually:
@@ -99,6 +122,13 @@ php artisan vendor:publish --tag=tracking-config
 php artisan vendor:publish --tag=tracking-views
 php artisan vendor:publish --tag=tracking-assets
 php artisan vendor:publish --tag=tracking-migrations
+```
+
+If you only want the database layer, publish the migration and run `migrate`:
+
+```bash
+php artisan vendor:publish --tag=tracking-migrations
+php artisan migrate
 ```
 
 ## Blade Integration
@@ -276,6 +306,13 @@ $this->track('Purchase', [
 
 That event is sent to the active providers and stored in the `tracking_events` table for auditing, debugging, or later processing.
 
+### Database-backed tracking flow
+
+1. A Livewire component calls `track(...)` or the facade/helper does it.
+2. The manager forwards the event to every enabled driver.
+3. The `TrackingEventRecorder` stores a row in `tracking_events`.
+4. The browser runtime can still react to the `yeto-track` event if needed.
+
 ### Lead
 
 ```php
@@ -332,6 +369,16 @@ The package creates a `tracking_events` table with:
 - `session_id`
 
 This gives you a durable audit trail of every tracked interaction.
+
+### Custom connection
+
+If you prefer a dedicated database connection, set:
+
+```env
+TRACKING_DB_CONNECTION=sqlite
+```
+
+Or any other Laravel connection name supported by your project.
 
 ### Driver Extension
 
